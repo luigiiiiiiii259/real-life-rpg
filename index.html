@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111827">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Life RPG">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>REAL LIFE RPG</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1020;--panel:#151d30;--panel2:#1c2940;--text:#f4f6fb;--muted:#9aa8bd;--accent:#8b5cf6;--green:#22c55e;--line:#2a3850}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#1b2440,var(--bg) 48%);color:var(--text);font:16px system-ui,-apple-system,sans-serif;padding:env(safe-area-inset-top) 16px calc(24px + env(safe-area-inset-bottom));min-height:100vh}
+main{max-width:760px;margin:auto}.top{display:flex;justify-content:space-between;align-items:center;padding:22px 2px 14px}.brand{font-weight:900;letter-spacing:1.5px;font-size:18px}.sub{color:var(--muted);font-size:12px}.panel{background:linear-gradient(145deg,var(--panel),#11192a);border:1px solid var(--line);border-radius:20px;padding:17px;margin:12px 0;box-shadow:0 10px 28px #0003}
+.hero{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}.level{font-size:40px;font-weight:900;line-height:1.1}.xp{font-size:14px;color:var(--muted);margin-top:5px}.avatar{width:64px;height:64px;border-radius:18px;background:#30265a;display:grid;place-items:center;font-size:34px}
+.bar{height:11px;background:#29354b;border-radius:20px;overflow:hidden;margin:14px 0 6px}.fill{height:100%;background:linear-gradient(90deg,#8b5cf6,#22c55e);width:0;transition:width .2s}.between{display:flex;justify-content:space-between;gap:10px;color:var(--muted);font-size:12px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:15px}.stat{background:#0d1526;border-radius:14px;padding:12px}.stat b{display:block;font-size:23px}.stat span{font-size:11px;color:var(--muted)}
+h2{font-size:16px;margin:0 0 13px}.row{display:flex;align-items:center;gap:10px}.row.between{justify-content:space-between}.tabs{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px}.btn,button,select,input{font:inherit}.btn,button{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:12px;padding:10px 13px;cursor:pointer}.btn.active{background:#49318a;border-color:#8b5cf6}.primary{background:var(--accent);border-color:var(--accent);font-weight:700}.danger{color:#fca5a5}.mission{display:flex;align-items:center;gap:11px;padding:12px 0;border-top:1px solid var(--line)}.mission:first-child{border-top:0}.mission input[type=checkbox]{width:21px;height:21px;accent-color:var(--green)}.mission .details{flex:1;min-width:0}.mission .name{font-weight:650;overflow-wrap:anywhere}.mission.done .name{text-decoration:line-through;color:var(--muted)}.tag{font-size:11px;color:var(--muted)}.reward{font-size:12px;color:#c4b5fd;white-space:nowrap}
+input[type=text],input[type=number],select{width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);background:#0d1526;color:var(--text);margin:5px 0 10px}label{display:block;color:var(--muted);font-size:12px;margin-top:8px}.formgrid{display:grid;grid-template-columns:1fr 120px;gap:8px}.muted{color:var(--muted);font-size:13px}.empty{text-align:center;padding:22px;color:var(--muted)}.achievement{display:flex;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line)}.locked{opacity:.45}.footer{text-align:center;color:var(--muted);font-size:11px;padding:12px}.notice{background:#182b28;border:1px solid #245b45;border-radius:12px;padding:11px;font-size:12px;color:#b9f6d0;margin-top:10px}
+</style>
+</head>
+<body>
+<main>
+<header class="top"><div><div class="brand">⚔ REAL LIFE RPG</div><div class="sub">LA TUA VITA, LA TUA AVVENTURA</div></div><button id="backupTop" aria-label="Esporta backup">⇩ Backup</button></header>
+<section class="panel">
+ <div class="hero"><div><div class="sub">LIVELLO DEL PERSONAGGIO</div><div class="level" id="level">1</div><div class="xp" id="rank">Novizio · 0 XP totali</div></div><div class="avatar">🛡️</div></div>
+ <div class="bar"><div class="fill" id="progress"></div></div><div class="between"><span id="progressText">0 / 100 XP</span><span id="remaining">100 XP al prossimo livello</span></div>
+ <div class="stats"><div class="stat"><b id="totalXp">0</b><span>XP TOTALI</span></div><div class="stat"><b id="doneCount">0</b><span>COMPLETATE</span></div><div class="stat"><b id="openCount">0</b><span>DA FARE</span></div></div>
+</section>
+<section class="panel">
+ <h2>🎯 Missioni</h2><div class="tabs"><button class="btn active" data-filter="Tutte">Tutte</button><button class="btn" data-filter="Giornaliera">Giornaliere</button><button class="btn" data-filter="Settimanale">Settimanali</button></div>
+ <div id="missions"></div>
+</section>
+<section class="panel">
+ <h2>＋ Crea una missione</h2>
+ <label for="missionName">Nome missione</label><input id="missionName" type="text" maxlength="70" placeholder="Es. Allenamento, leggere, studiare...">
+ <div class="formgrid"><div><label for="frequency">Frequenza</label><select id="frequency"><option>Giornaliera</option><option>Settimanale</option></select></div><div><label for="reward">Ricompensa XP</label><select id="reward"><option>10</option><option selected>20</option><option>30</option><option>50</option><option>100</option></select></div></div>
+ <button class="primary" id="addMission">Aggiungi missione</button>
+</section>
+<section class="panel">
+ <h2>🏆 Traguardi</h2><div id="achievements"></div>
+</section>
+<section class="panel">
+ <h2>🔒 Privacy e backup</h2><p class="muted">Missioni e progressi sono salvati soltanto nella memoria locale di questo browser. L'app non invia questi dati a GitHub né a un server. Il codice dell'app è pubblico, ma i tuoi progressi non sono pubblicati.</p>
+ <div class="row"><button id="export">Esporta backup</button><button id="importBtn">Importa backup</button><input id="importFile" type="file" accept="application/json" hidden></div>
+ <div class="notice">Non inserire password, dati bancari o informazioni molto personali nelle missioni. Esporta periodicamente un backup: cancellando i dati di Safari potresti perdere i progressi.</div>
+</section>
+<div class="footer">REAL LIFE RPG · dati locali sul dispositivo · nessun account nell'app</div>
+</main>
+<script>
+(()=>{'use strict';
+const KEY='real-life-rpg-v1';
+const defaults=[
+{id:1,name:'Allenamento',frequency:'Settimanale',xp:30,done:false},
+{id:2,name:'Studiare o imparare qualcosa',frequency:'Giornaliera',xp:20,done:false},
+{id:3,name:'Riordinare la camera',frequency:'Giornaliera',xp:10,done:false},
+{id:4,name:'Leggere',frequency:'Giornaliera',xp:15,done:false}
+];
+let state={missions:defaults,nextId:5,filter:'Tutte'};
+const $=id=>document.getElementById(id);
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){alert('Impossibile salvare i dati sul dispositivo. Esporta un backup.');}}
+function load(){try{const raw=localStorage.getItem(KEY);if(raw){const x=JSON.parse(raw);if(Array.isArray(x.missions)){state={missions:x.missions,nextId:Number(x.nextId)||1,filter:'Tutte'};}}}catch(e){}}
+function xp(){return state.missions.filter(m=>m.done).reduce((a,m)=>a+Number(m.xp||0),0);}
+function render(){
+ const total=xp(),level=Math.floor(total/100)+1,progress=total%100,done=state.missions.filter(m=>m.done).length;
+ $('level').textContent=level;$('rank').textContent=(level<5?'Novizio':level<10?'Esploratore':level<20?'Veterano':'Leggenda')+' · '+total+' XP totali';
+ $('totalXp').textContent=total;$('doneCount').textContent=done;$('openCount').textContent=state.missions.length-done;
+ $('progress').style.width=progress+'%';$('progressText').textContent=progress+' / 100 XP';$('remaining').textContent=(100-progress)+' XP al prossimo livello';
+ document.querySelectorAll('[data-filter]').forEach(b=>b.classList.toggle('active',b.dataset.filter===state.filter));
+ const list=state.missions.filter(m=>state.filter==='Tutte'||m.frequency===state.filter);
+ $('missions').innerHTML=list.length?'':'<div class="empty">Nessuna missione in questa categoria.</div>';
+ list.forEach(m=>{const item=document.createElement('div');item.className='mission'+(m.done?' done':'');
+ const cb=document.createElement('input');cb.type='checkbox';cb.checked=!!m.done;cb.setAttribute('aria-label','Completa '+m.name);cb.addEventListener('change',()=>{m.done=cb.checked;save();render();});
+ const details=document.createElement('div');details.className='details';const name=document.createElement('div');name.className='name';name.textContent=m.name;const tag=document.createElement('div');tag.className='tag';tag.textContent=m.frequency;details.append(name,tag);
+ const reward=document.createElement('span');reward.className='reward';reward.textContent='+'+m.xp+' XP';
+ const del=document.createElement('button');del.textContent='×';del.className='danger';del.setAttribute('aria-label','Elimina missione');del.addEventListener('click',()=>{if(confirm('Eliminare questa missione?')){state.missions=state.missions.filter(x=>x.id!==m.id);save();render();}});
+ item.append(cb,details,reward,del);$('missions').append(item);});
+ const goals=[['Primo livello',100],['Esploratore',500],['Veterano',1000],['Leggenda',2500]];
+ $('achievements').innerHTML='';goals.forEach(([name,threshold])=>{const row=document.createElement('div');row.className='achievement'+(total<threshold?' locked':'');const a=document.createElement('span');a.textContent=(total>=threshold?'🏅 ':'🔒 ')+name;const b=document.createElement('b');b.textContent=threshold+' XP';row.append(a,b);$('achievements').append(row);});
+}
+function exportBackup(){const blob=new Blob([JSON.stringify({app:'REAL LIFE RPG',version:1,exportedAt:new Date().toISOString(),state},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='real-life-rpg-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+$('addMission').addEventListener('click',()=>{const name=$('missionName').value.trim();if(!name){alert('Scrivi il nome della missione.');return;}state.missions.push({id:state.nextId++,name,frequency:$('frequency').value,xp:Number($('reward').value),done:false});$('missionName').value='';save();render();});
+document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>{state.filter=b.dataset.filter;render();}));
+$('export').addEventListener('click',exportBackup);$('backupTop').addEventListener('click',exportBackup);
+$('importBtn').addEventListener('click',()=>$('importFile').click());
+$('importFile').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;try{const data=JSON.parse(await f.text());const s=data.state||data;if(!Array.isArray(s.missions))throw Error();state={missions:s.missions,nextId:Number(s.nextId)||1,filter:'Tutte'};save();render();alert('Backup importato.');}catch(err){alert('File di backup non valido.');}e.target.value='';});
+load();render();
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));}
+})();
+</script>
+</body></html>
