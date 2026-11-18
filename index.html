@@ -125,7 +125,8 @@ function applyLogin(){
  save();toast('Ricompensa giornaliera: +'+r.z+' Zeni · +'+r.c+' Chrono Crystals');
 }
 function ensureWeek(){const w=weekKey();if(state.weeklyKey!==w){state.weeklyKey=w;state.weeklyCount=0;state.weeklyClaimed=false;}}
-function periodKey(m){return m.frequency==='Settimanale'?'week:'+weekKey():'day:'+today();}\nfunction resetExpiredMissions(){let changed=false;state.missions.forEach(m=>{if(m.done&&m.completedPeriodKey&&m.completedPeriodKey!==periodKey(m)){m.done=false;m.rewardClaimed=false;m.completedPeriodKey=null;changed=true;}});if(changed)save();}
+function periodKey(m){return m.frequency==='Settimanale'?'week:'+weekKey():'day:'+today();}
+function resetExpiredMissions(){let changed=false;state.missions.forEach(m=>{if(m.done&&m.completedPeriodKey&&m.completedPeriodKey!==periodKey(m)){m.done=false;m.rewardClaimed=false;m.completedPeriodKey=null;changed=true;}});if(changed)save();}
 function xp(){return state.missions.filter(m=>m.done).reduce((a,m)=>a+Number(m.xp||0),0);}
 function render(){
  const total=xp(),level=Math.floor(total/100)+1,progress=total%100,done=state.missions.filter(m=>m.done).length;
