@@ -109,7 +109,7 @@ function yesterday(){const d=new Date();d.setDate(d.getDate()-1);return d.getFul
 function weekKey(){const d=new Date();d.setHours(0,0,0,0);const day=(d.getDay()+6)%7;d.setDate(d.getDate()-day);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function normalize(raw){
  const s=raw&&raw.state?raw.state:raw;if(!s||!Array.isArray(s.missions))throw Error('Backup non valido');
- const missions=s.missions.map((m,i)=>{const diff=m.difficulty|| (Number(m.xp)>=40?'special':Number(m.xp)>=25?'hard':Number(m.xp)>=15?'medium':'easy');return {...m,id:Number(m.id)||i+1,name:String(m.name||'Missione'),frequency:m.frequency==='Settimanale'?'Settimanale':'Giornaliera',xp:Number(m.xp)||rewards[diff].xp,difficulty:diff,done:!!m.done,rewardClaimed:m.rewardClaimed===undefined?!!m.done:!!m.rewardClaimed};});
+ const missions=s.missions.map((m,i)=>{const diff=m.difficulty|| (Number(m.xp)>=40?'special':Number(m.xp)>=25?'hard':Number(m.xp)>=15?'medium':'easy');return {...m,id:Number(m.id)||i+1,name:String(m.name||'Missione'),frequency:m.frequency==='Settimanale'?'Settimanale':'Giornaliera',xp:Number(m.xp)||rewards[diff].xp,difficulty:diff,done:!!m.done,rewardClaimed:m.rewardClaimed===undefined?!!m.done:!!m.rewardClaimed,completedPeriodKey:m.completedPeriodKey||(m.done?periodKey({frequency:m.frequency}):null)};});
  return {missions,nextId:Math.max(Number(s.nextId)||1,...missions.map(m=>m.id+1)),filter:'Tutte',zeni:Math.max(0,Number(s.zeni)||0),crystals:Math.max(0,Number(s.crystals)||0),collection:s.collection&&typeof s.collection==='object'?s.collection:{},pity:Math.max(0,Math.min(49,Number(s.pity)||0)),banner:banners.some(b=>b.id===s.banner)?s.banner:'eclipse',lastLoginDate:s.lastLoginDate||null,loginStreak:Number(s.loginStreak)||0,weeklyKey:s.weeklyKey||'',weeklyCount:Number(s.weeklyCount)||0,weeklyClaimed:!!s.weeklyClaimed};
 }
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){toast('Salvataggio non riuscito: esporta un backup.');}}
@@ -124,7 +124,7 @@ function applyLogin(){
  $('loginReward').textContent='Accesso giorno '+(((state.loginStreak-1)%7)+1)+': +'+r.z+' Zeni e +'+r.c+' Chrono Crystals.';
  save();toast('Ricompensa giornaliera: +'+r.z+' Zeni · +'+r.c+' Chrono Crystals');
 }
-function ensureWeek(){const w=weekKey();if(state.weeklyKey!==w){state.weeklyKey=w;state.weeklyCount=0;state.weeklyClaimed=false;}}
+function ensureWeek(){const w=weekKey();if(state.weeklyKey!==w){state.weeklyKey=w;state.weeklyCount=0;state.weeklyClaimed=false;}}\nfunction periodKey(m){return m.frequency==='Settimanale'?'week:'+weekKey():'day:'+today();}\nfunction resetExpiredMissions(){let changed=false;state.missions.forEach(m=>{if(m.done&&m.completedPeriodKey&&m.completedPeriodKey!==periodKey(m)){m.done=false;m.rewardClaimed=false;m.completedPeriodKey=null;changed=true;}});if(changed)save();}
 function xp(){return state.missions.filter(m=>m.done).reduce((a,m)=>a+Number(m.xp||0),0);}
 function render(){
  const total=xp(),level=Math.floor(total/100)+1,progress=total%100,done=state.missions.filter(m=>m.done).length;
@@ -135,7 +135,7 @@ function render(){
  document.querySelectorAll('[data-filter]').forEach(b=>b.classList.toggle('active',b.dataset.filter===state.filter));
  const list=state.missions.filter(m=>state.filter==='Tutte'||m.frequency===state.filter);$('missions').innerHTML='';
  if(!list.length)$('missions').innerHTML='<div class="empty">Nessuna missione in questa categoria.</div>';
- list.forEach(m=>{const item=document.createElement('div');item.className='mission'+(m.done?' done':'');const cb=document.createElement('input');cb.type='checkbox';cb.checked=!!m.done;cb.setAttribute('aria-label','Completa '+m.name);cb.addEventListener('change',()=>{if(cb.checked&&!m.done){m.done=true;if(!m.rewardClaimed){const r=rewards[m.difficulty]||rewards.medium;grant(r.zeni,r.crystals);m.rewardClaimed=true;ensureWeek();state.weeklyCount++;if(state.weeklyCount>=5&&!state.weeklyClaimed){state.crystals+=100;state.weeklyClaimed=true;toast('Obiettivo settimanale completato: +100 Chrono Crystals!');}else toast('Missione completata: +'+r.xp+' XP · +'+r.zeni+' Zeni · +'+r.crystals+' Crystals');}}else{m.done=false;}save();render();});
+ list.forEach(m=>{const item=document.createElement('div');item.className='mission'+(m.done?' done':'');const cb=document.createElement('input');cb.type='checkbox';cb.checked=!!m.done;cb.setAttribute('aria-label','Completa '+m.name);cb.addEventListener('change',()=>{if(cb.checked&&!m.done){m.done=true;m.completedPeriodKey=periodKey(m);if(!m.rewardClaimed){const r=rewards[m.difficulty]||rewards.medium;grant(r.zeni,r.crystals);m.rewardClaimed=true;ensureWeek();state.weeklyCount++;if(state.weeklyCount>=5&&!state.weeklyClaimed){state.crystals+=100;state.weeklyClaimed=true;toast('Obiettivo settimanale completato: +100 Chrono Crystals!');}else toast('Missione completata: +'+r.xp+' XP · +'+r.zeni+' Zeni · +'+r.crystals+' Crystals');}}else{m.done=false;}save();render();});
  const details=document.createElement('div');details.className='details';const name=document.createElement('div');name.className='name';name.textContent=m.name;const tag=document.createElement('div');tag.className='tag';tag.textContent=m.frequency+' · '+(m.difficulty||'media');details.append(name,tag);const r=rewards[m.difficulty]||rewards.medium;const reward=document.createElement('span');reward.className='reward';reward.textContent='+'+m.xp+' XP';const del=document.createElement('button');del.textContent='×';del.className='danger';del.setAttribute('aria-label','Elimina missione');del.addEventListener('click',()=>{if(confirm('Eliminare questa missione?')){state.missions=state.missions.filter(x=>x.id!==m.id);save();render();}});item.append(cb,details,reward,del);$('missions').append(item);});
  const goals=[['Primo livello',100],['Esploratore',500],['Veterano',1000],['Leggenda',2500]];$('achievements').innerHTML='';goals.forEach(([name,threshold])=>{const row=document.createElement('div');row.className='achievement'+(total<threshold?' locked':'');const a=document.createElement('span');a.textContent=(total>=threshold?'🏅 ':'🔒 ')+name;const b=document.createElement('b');b.textContent=threshold+' XP';row.append(a,b);$('achievements').append(row);});
  renderBanners();renderCollection();$('pityText').textContent='Pietà SSR: '+state.pity+' / 50 · SSR garantito al 50° tiro';$('pityBar').style.width=(state.pity/50*100)+'%';
@@ -150,7 +150,7 @@ function getPull(b){
  else{if(rarity==='SR'&&Math.random()<b.srRate/100)c=characters.find(x=>x.id===b.sr);else c=choose(characters.filter(x=>x.rarity===rarity));state.pity++;}
  const old=state.collection[c.id];let note='Nuovo personaggio!';
  if(!old)state.collection[c.id]={fragments:0,stars:0};
- else if(old.stars<5){const pieces={N:20,R:25,SR:40,SSR:60}[c.rarity];old.fragments+=pieces;while(old.fragments>=100&&old.stars<5){old.fragments-=100;old.stars++;}if(old.stars===5)old.fragments=0;note='Doppione: +'+pieces+' frammenti'+(old.stars?' · '+old.stars+' stelle':'');}
+ else if(old.stars<5){const pieces={N:20,R:25,SR:40,SSR:60}[c.rarity];old.fragments+=pieces;while(old.fragments>=100&&old.stars<5){old.fragments-=100;old.stars++;}note='Doppione: +'+pieces+' frammenti'+(old.stars?' · '+old.stars+' stelle':'');}
  else{const convert={N:{z:50,c:5},R:{z:100,c:10},SR:{z:250,c:20},SSR:{z:500,c:40}}[c.rarity];grant(convert.z,convert.c);note='Grado massimo: +'+convert.z+' Zeni e +'+convert.c+' Crystals';}
  return {character:c,note};
 }
@@ -161,7 +161,7 @@ document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click'
 $('singlePull').addEventListener('click',()=>summon(1));$('multiPull').addEventListener('click',()=>summon(10));
 $('export').addEventListener('click',exportBackup);$('backupTop').addEventListener('click',exportBackup);$('importBtn').addEventListener('click',()=>$('importFile').click());
 $('importFile').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;try{state=normalize(JSON.parse(await f.text()));save();render();toast('Backup importato correttamente.');}catch(err){toast('File di backup non valido.');}e.target.value='';});
-load();ensureWeek();applyLogin();render();
+load();ensureWeek();resetExpiredMissions();applyLogin();render();
 if('serviceWorker' in navigator&&location.protocol.startsWith('http')){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));}
 })();
 </script>
