@@ -38,7 +38,7 @@ input[type=text],input[type=number],select{width:100%;padding:12px;border-radius
 </section>
 <section class="panel">
  <h2>🎯 Missioni</h2><div class="tabs"><button class="btn active" data-filter="Tutte">Tutte</button><button class="btn" data-filter="Giornaliera">Giornaliere</button><button class="btn" data-filter="Settimanale">Settimanali</button></div>
- <div id="missions"></div>
+ <div id="missions"></div><p class="muted" id="weeklyGoal">Obiettivo settimanale: 0 / 5 missioni completate · premio: 100 Chrono Crystals</p>
 </section>
 <section class="panel">
  <h2>＋ Crea una missione</h2>
@@ -132,7 +132,7 @@ function render(){
  $('level').textContent=level;$('rank').textContent=(level<5?'Novizio':level<10?'Esploratore':level<20?'Veterano':'Leggenda')+' · '+total+' XP totali';
  $('totalXp').textContent=total;$('doneCount').textContent=done;$('openCount').textContent=state.missions.length-done;
  $('progress').style.width=progress+'%';$('progressText').textContent=progress+' / 100 XP';$('remaining').textContent=(100-progress)+' XP al prossimo livello';
- $('zeni').textContent=state.zeni.toLocaleString('it-IT');$('crystals').textContent=state.crystals.toLocaleString('it-IT');
+ $('zeni').textContent=state.zeni.toLocaleString('it-IT');$('crystals').textContent=state.crystals.toLocaleString('it-IT');$('weeklyGoal').textContent='Obiettivo settimanale: '+Math.min(state.weeklyCount,5)+' / 5 missioni completate · '+(state.weeklyClaimed?'premio riscosso':'premio: 100 Chrono Crystals');
  document.querySelectorAll('[data-filter]').forEach(b=>b.classList.toggle('active',b.dataset.filter===state.filter));
  const list=state.missions.filter(m=>state.filter==='Tutte'||m.frequency===state.filter);$('missions').innerHTML='';
  if(!list.length)$('missions').innerHTML='<div class="empty">Nessuna missione in questa categoria.</div>';
